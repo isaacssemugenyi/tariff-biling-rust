@@ -57,7 +57,7 @@ impl DomesticConsumer {
 }
 
 pub fn print_industrial_consumer_to_console(
-    results: IndustrialConsumer,
+    results: &IndustrialConsumer,
     consumer_type: &str,
     entered_units: &CommercialUnitTuple,
     costs: (f32, f32, f32),

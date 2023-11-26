@@ -1,9 +1,20 @@
+mod write_file;
 mod terminal_print;
+mod read_file;
 
 use std::io::stdin;
+use write_file::*;
 use terminal_print::*;
+// use read_file::*;
 
 fn main() {
+    // let result: Result<(), std::io::Error> = read_to_file();
+
+    // match result {
+    //     Ok(_) => {},
+    //     Err(e) => println!("Error: {}", e),
+    // }
+
     get_print_main_menu();
 }
 
@@ -73,11 +84,23 @@ fn calc_consumption_for_industrial_consumer(option: u8, consumer_type: &str) {
                 compute_industrial_cost(&result, costs[(option - 2) as usize]);
 
             print_industrial_consumer_to_console(
-                output,
+                &output,
                 consumer_type,
                 &result,
                 costs[(option - 2) as usize],
             );
+
+            let result: Result<(), std::io::Error> = write_industrial_consumer_to_file(
+                &output,
+                consumer_type,
+                &result,
+                costs[(option - 2) as usize],
+            );
+
+            match result {
+                Ok(_) => println!("Receipt successfully saved"),
+                Err(e) => println!("Error {} occured while saving receipt", e),
+            }
         }
         _ => println!("Unsupported selection."),
     }

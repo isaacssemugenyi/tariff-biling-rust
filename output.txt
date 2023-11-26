@@ -1,0 +1,14 @@
+
+    |----------------------------------------------------------------|
+    |Consumer Type: Large-industrial Consumer						 |
+    |----------------------------------------------------------------|
+    | 12.00 peak unit @ 497.00 shs costs Ugx 5964.00				 |
+    | 3.00 shoulder unit @ 368.60 shs costs Ugx 1105.80			 |
+    | 45.00 off peak unit @ 233.10 shs costs Ugx 10489.50			 |
+    |----------------------------------------------------------------|
+    | The net unit cost is Ugx: 						 | 17559.30	 |
+    | The net cost with service fee is Ugx:				 | 20919.30	 |
+    | The total taxes is Ugx:							 | 3765.47	 |
+    | The overall cost is Ugx:							 | 24684.78	 |
+    |----------------------------------------------------------------|
+    
