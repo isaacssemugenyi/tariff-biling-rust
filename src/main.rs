@@ -3,32 +3,65 @@ mod terminal_print;
 mod read_file;
 
 use std::io::stdin;
+use std::fs;
 use write_file::*;
 use terminal_print::*;
-// use read_file::*;
+use read_file::*;
 
 fn main() {
-    // let result: Result<(), std::io::Error> = read_to_file();
-
-    // match result {
-    //     Ok(_) => {},
-    //     Err(e) => println!("Error: {}", e),
-    // }
-
     get_print_main_menu();
 }
 
+
+#[allow(dead_code)]
+fn create_user_meter_number() { // still under development
+    let mut customer_option: String = String::new();
+
+    println!("Are you a new customer or an existing customer: ");
+    println!("1. Yes");
+    println!("2. No");
+
+    stdin()
+        .read_line(&mut customer_option)
+        .expect("Not a valid selection");
+
+    match customer_option.trim().parse::<u8>() {
+        Ok(option) => {
+            match option {
+                1 => {}, // prompt user to input meter number
+                2 => {}, // Create meter number for customer as a folder
+                _ => println!("Unknown option selected")
+            }
+        }
+        Err(e) => {
+            println!("An error occured with provided receipt number, {}", e);
+        }
+    }
+
+
+    let folder_name = "meter_number";
+
+    // create the meter number (folder)
+    match fs::create_dir(folder_name) {
+        Ok(_) => {
+            println!("Folder '{}' created successfully", folder_name);
+        }
+        Err(e) => {
+            eprintln!("Error generating meter number {}", e);
+        }
+    }
+}
+
+
 fn get_print_main_menu() {
     let mut selected_option: String = String::new();
-    let menu_options: [&str; 8] = [
+    let menu_options: [&str; 6] = [
         "Domestic Consumer",
         "Commercial Consumer",
         "Medium-industrial Consumer",
         "Large-industrial Consumer",
         "Street Lighting",
-        "Print recent receipt",
-        "Save a receipt",
-        "Print personal receipts",
+        "Print personal receipts", // "Print recent receipt",
     ];
 
     println!("Select an option");
@@ -54,15 +87,14 @@ fn choose_selected_option(selected_option: u8, menu_options: &str) {
         1 => input_domestic_consumer_units(menu_options),
         2..=4 => calc_consumption_for_industrial_consumer(selected_option, menu_options),
         5 => input_street_light_units(menu_options),
-        6 => println!("You selected 6"),
-        7 => println!("You selected 7"),
-        8 => println!("You selected 8"),
+        6 => prompt_for_receipt_number(),
         _ => {
             println!("Invalid option. Try again");
             get_print_main_menu()
         }
     }
 }
+
 
 fn calc_consumption_for_industrial_consumer(option: u8, consumer_type: &str) {
     /*
@@ -90,7 +122,7 @@ fn calc_consumption_for_industrial_consumer(option: u8, consumer_type: &str) {
                 costs[(option - 2) as usize],
             );
 
-            let result: Result<(), std::io::Error> = write_industrial_consumer_to_file(
+            let result: Result<u32, std::io::Error> = write_industrial_consumer_to_file(
                 &output,
                 consumer_type,
                 &result,
@@ -98,7 +130,7 @@ fn calc_consumption_for_industrial_consumer(option: u8, consumer_type: &str) {
             );
 
             match result {
-                Ok(_) => println!("Receipt successfully saved"),
+                Ok(receipt_number) => println!("Your receipt with number {} was successfully saved", receipt_number),
                 Err(e) => println!("Error {} occured while saving receipt", e),
             }
         }
@@ -285,6 +317,19 @@ fn calculate_domestic_consumer_costs(units: f32, consumer_type: &str) {
         &split_units,
         &net_costs,
     );
+
+    let result: Result<u32, std::io::Error> = write_domestic_consumer_to_file(
+        &domestic_unit_costs, 
+        &domestic_consumer,
+        consumer_type,
+        &split_units,
+        &net_costs
+    );
+
+    match result {
+        Ok(receipt_number) => println!("Your receipt with number {} was successfully saved", receipt_number),
+        Err(e) => println!("Error {} occured while saving receipt", e),
+    }
 }
 
 fn input_street_light_units(consumer_type: &str) {
@@ -331,5 +376,17 @@ fn calculate_street_light_consumption(unit: f32, consumer_type: &str) {
         unit,
         &domestic_consumer,
         consumer_type,
-    )
+    );
+
+    let result: Result<u32, std::io::Error> = write_street_lighting_to_file(
+        average_unit_cost, 
+        unit,
+        &domestic_consumer,
+        consumer_type
+    );
+
+    match result {
+        Ok(receipt_number) => println!("Your receipt with number {} was successfully saved", receipt_number),
+        Err(e) => println!("Error {} occured while saving receipt", e),
+    }
 }

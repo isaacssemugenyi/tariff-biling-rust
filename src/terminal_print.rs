@@ -116,7 +116,7 @@ pub fn print_domestic_consumer_to_console(
         split_units.1, domestic_unit_costs[1], net_costs.1
     );
     println!(
-        "| {:.2} off peak unit @ {:.2} shs costs Ugx {:.2}\t\t\t |",
+        "| {:.2} units above 81 @ {:.2} shs costs Ugx {:.2}\t\t\t |",
         split_units.2, domestic_unit_costs[2], net_costs.2
     );
     println!("|------------------------------------------------------------------------|");
