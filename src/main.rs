@@ -3,57 +3,15 @@ mod terminal_print;
 mod read_file;
 
 use std::io::stdin;
-use std::fs;
 use write_file::*;
 use terminal_print::*;
 use read_file::*;
 
 fn main() {
-    get_print_main_menu();
+    check_user_meter_number();
 }
 
-
-#[allow(dead_code)]
-fn create_user_meter_number() { // still under development
-    let mut customer_option: String = String::new();
-
-    println!("Are you a new customer or an existing customer: ");
-    println!("1. Yes");
-    println!("2. No");
-
-    stdin()
-        .read_line(&mut customer_option)
-        .expect("Not a valid selection");
-
-    match customer_option.trim().parse::<u8>() {
-        Ok(option) => {
-            match option {
-                1 => {}, // prompt user to input meter number
-                2 => {}, // Create meter number for customer as a folder
-                _ => println!("Unknown option selected")
-            }
-        }
-        Err(e) => {
-            println!("An error occured with provided receipt number, {}", e);
-        }
-    }
-
-
-    let folder_name = "meter_number";
-
-    // create the meter number (folder)
-    match fs::create_dir(folder_name) {
-        Ok(_) => {
-            println!("Folder '{}' created successfully", folder_name);
-        }
-        Err(e) => {
-            eprintln!("Error generating meter number {}", e);
-        }
-    }
-}
-
-
-fn get_print_main_menu() {
+fn get_print_main_menu(folder_name: &str) {
     let mut selected_option: String = String::new();
     let menu_options: [&str; 6] = [
         "Domestic Consumer",
@@ -74,29 +32,29 @@ fn get_print_main_menu() {
         .expect("Not a valid string");
 
     match selected_option.trim().parse::<u8>() {
-        Ok(i) => choose_selected_option(i, &menu_options[(i -1) as usize]),
+        Ok(i) => choose_selected_option(i, &menu_options[(i -1) as usize], folder_name),
         Err(_) => {
             println!("Invalid option. Try again");
-            get_print_main_menu()
+            get_print_main_menu(folder_name)
         }
     }
 }
 
-fn choose_selected_option(selected_option: u8, menu_options: &str) {
+fn choose_selected_option(selected_option: u8, menu_options: &str, folder_name: &str) {
     match selected_option {
-        1 => input_domestic_consumer_units(menu_options),
-        2..=4 => calc_consumption_for_industrial_consumer(selected_option, menu_options),
-        5 => input_street_light_units(menu_options),
-        6 => prompt_for_receipt_number(),
+        1 => input_domestic_consumer_units(menu_options, folder_name),
+        2..=4 => calc_consumption_for_industrial_consumer(selected_option, menu_options, folder_name),
+        5 => input_street_light_units(menu_options, folder_name),
+        6 => prompt_for_receipt_number(folder_name),
         _ => {
             println!("Invalid option. Try again");
-            get_print_main_menu()
+            get_print_main_menu(folder_name)
         }
     }
 }
 
 
-fn calc_consumption_for_industrial_consumer(option: u8, consumer_type: &str) {
+fn calc_consumption_for_industrial_consumer(option: u8, consumer_type: &str, meter_number: &str) {
     /*
       Domestic - {lifeline: 250.00, 16-80: 805.00, >81: 412.00}
       street-lighting - {average: 370.00}
@@ -110,7 +68,7 @@ fn calc_consumption_for_industrial_consumer(option: u8, consumer_type: &str) {
                 (497.00, 368.60, 233.10), // large - {peak: 497.00, shoulder: 368.60, off_peak: 233.10}
             ];
 
-            let result: CommercialUnitTuple = get_industrial_consumer_consumption();
+            let result: CommercialUnitTuple = get_industrial_consumer_consumption(meter_number);
 
             let output: IndustrialConsumer =
                 compute_industrial_cost(&result, costs[(option - 2) as usize]);
@@ -123,6 +81,7 @@ fn calc_consumption_for_industrial_consumer(option: u8, consumer_type: &str) {
             );
 
             let result: Result<u32, std::io::Error> = write_industrial_consumer_to_file(
+                meter_number,
                 &output,
                 consumer_type,
                 &result,
@@ -138,7 +97,7 @@ fn calc_consumption_for_industrial_consumer(option: u8, consumer_type: &str) {
     }
 }
 
-fn get_industrial_consumer_consumption() -> CommercialUnitTuple {
+fn get_industrial_consumer_consumption(meter_number: &str) -> CommercialUnitTuple {
     let mut peak_units: String = String::new();
     let mut shoulder_units: String = String::new();
     let mut off_peak_units: String = String::new();
@@ -157,7 +116,7 @@ fn get_industrial_consumer_consumption() -> CommercialUnitTuple {
                 used_units.0 = peak
             } else {
                 println!("Not a valid unit");
-                get_print_main_menu()
+                get_print_main_menu(meter_number)
             }
         }
         Err(_) => println!("Not a valid unit"),
@@ -174,7 +133,7 @@ fn get_industrial_consumer_consumption() -> CommercialUnitTuple {
                 used_units.1 = shoulder
             } else {
                 println!("Not a valid unit");
-                get_print_main_menu()
+                get_print_main_menu(meter_number)
             }
         }
         Err(_) => println!("Not a valid unit"),
@@ -191,7 +150,7 @@ fn get_industrial_consumer_consumption() -> CommercialUnitTuple {
                 used_units.2 = off_peak
             } else {
                 println!("Not a valid unit");
-                get_print_main_menu()
+                get_print_main_menu(meter_number)
             }
         }
         Err(_) => println!("Not a valid unit"),
@@ -223,7 +182,7 @@ fn compute_industrial_cost(
     )
 }
 
-fn input_domestic_consumer_units(consumer_type: &str) {
+fn input_domestic_consumer_units(consumer_type: &str, meter_number: &str) {
     let mut consumed_units: String = String::new();
 
     println!("Enter consumed units: ");
@@ -235,20 +194,20 @@ fn input_domestic_consumer_units(consumer_type: &str) {
     match consumed_units.trim().parse::<f32>() {
         Ok(unit) => {
             if unit >= 0.0 {
-                calculate_domestic_consumer_costs(unit, consumer_type)
+                calculate_domestic_consumer_costs(unit, consumer_type, meter_number)
             } else {
                 println!("Invalid option. Try again");
-                get_print_main_menu()
+                get_print_main_menu(meter_number)
             }
         }
         Err(_) => {
             println!("Invalid option. Try again");
-            get_print_main_menu()
+            get_print_main_menu(meter_number)
         }
     }
 }
 
-fn calculate_domestic_consumer_costs(units: f32, consumer_type: &str) {
+fn calculate_domestic_consumer_costs(units: f32, consumer_type: &str, meter_number: &str) {
     let domestic_unit_costs: [f32; 3] = [250.00, 805.00, 412.00];
     let mut split_units: CommercialUnitTuple = Default::default(); // tuple to keep units for below 15, between 16 to 80 and above 80
     let mut net_costs: CommercialUnitTuple = Default::default(); // tuple to store the unit cost for the first 15 units, between 16 to 80 and aboe 80
@@ -319,6 +278,7 @@ fn calculate_domestic_consumer_costs(units: f32, consumer_type: &str) {
     );
 
     let result: Result<u32, std::io::Error> = write_domestic_consumer_to_file(
+        meter_number,
         &domestic_unit_costs, 
         &domestic_consumer,
         consumer_type,
@@ -332,7 +292,7 @@ fn calculate_domestic_consumer_costs(units: f32, consumer_type: &str) {
     }
 }
 
-fn input_street_light_units(consumer_type: &str) {
+fn input_street_light_units(consumer_type: &str, meter_number: &str) {
     let mut average_units: String = String::new();
 
     println!("Enter the Average Units consumed: ");
@@ -344,20 +304,20 @@ fn input_street_light_units(consumer_type: &str) {
     match average_units.trim().parse::<f32>() {
         Ok(unit) => {
             if unit >= 0.0 {
-                calculate_street_light_consumption(unit, consumer_type)
+                calculate_street_light_consumption(unit, consumer_type, meter_number)
             } else {
                 println!("Invalid option. Try again");
-                get_print_main_menu()
+                get_print_main_menu(meter_number)
             }
         }
         Err(_) => {
             println!("Invalid option. Try again");
-            get_print_main_menu()
+            get_print_main_menu(meter_number)
         }
     }
 }
 
-fn calculate_street_light_consumption(unit: f32, consumer_type: &str) {
+fn calculate_street_light_consumption(unit: f32, consumer_type: &str, meter_number: &str) {
     let average_unit_cost: f32 = 370.00;
     let net_unit_cost: f32 = unit * average_unit_cost; // multiply the average_units by single unit cost
     let total_cost_with_service_fee: f32 = net_unit_cost + 3360.0; // add total unit cost + service fee
@@ -379,6 +339,7 @@ fn calculate_street_light_consumption(unit: f32, consumer_type: &str) {
     );
 
     let result: Result<u32, std::io::Error> = write_street_lighting_to_file(
+        meter_number,
         average_unit_cost, 
         unit,
         &domestic_consumer,
