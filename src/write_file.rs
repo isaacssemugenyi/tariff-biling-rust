@@ -80,6 +80,7 @@ fn create_user_meter_number(folder_name: &str) {
     match create_dir(folder_name) {
         Ok(_) => {
             println!("Account/ Meter number '{}' created successfully", folder_name);
+            get_print_main_menu(folder_name);
         }
         Err(e) => {
             eprintln!("Error generating meter number {}", e);
@@ -117,7 +118,8 @@ pub fn write_industrial_consumer_to_file(
 ) -> io::Result<u32> {
     let (file_name, receipt_number) = generate_random_receipt_numbers();
 
-    let file_path = meter_number.to_owned()+"/"+&file_name;
+    // let file_path = meter_number.to_owned()+"/"+&file_name;
+    let file_path = format!("{}/{}", meter_number, file_name);
 
     let mut output_file = File::create(file_path)?;
 
@@ -167,7 +169,8 @@ pub fn write_domestic_consumer_to_file(
 ) -> io::Result<u32> {
     let (file_name, receipt_number) = generate_random_receipt_numbers();
 
-    let file_path = meter_number.to_owned()+"/"+&file_name;
+    // let file_path = meter_number.to_owned()+"/"+&file_name;
+    let file_path = format!("{}/{}", meter_number, file_name);
 
     let mut output_file = File::create(file_path)?;
 
@@ -215,7 +218,8 @@ pub fn write_street_lighting_to_file(
 ) -> io::Result<u32> {
     let (file_name, receipt_number) = generate_random_receipt_numbers();
 
-    let file_path = meter_number.to_owned()+"/"+&file_name;
+    // let file_path = meter_number.to_owned()+"/"+&file_name;
+    let file_path = format!("{}/{}", meter_number, file_name); // for me this was clean and better
 
     let mut output_file = File::create(file_path)?;
 
